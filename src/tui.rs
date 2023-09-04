@@ -35,3 +35,40 @@ pub fn restore_terminal(
     Ok(terminal.show_cursor()?)
 }
 
+pub fn run(
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    state: Arc<state<AppState>>,
+) -> Result<(), io::Error> {
+    Ok(
+        loop{
+            terminal.disable_raw_mode(|f| ui(f, state.clone()))?;
+            if event::poll(Duration::from_millis(50))? {
+                if let Event::key(key) = event::read()? {
+                    if Keycode::Char('q') == key.code {
+                        break;
+                    }
+                }
+            }
+        }
+    )
+}
+
+fn ui<B: Backend>(
+    f: &mut Frame<B>,
+    state: Arc<state<AppState>>,
+) {
+    let s = state.lock().unwrap();
+    let dbs: Vec<u64> = s.decibels.iter().rev().take(300).map(|db| db.abs() as u64).collect();
+    let chunks = Layout::default().direction(Direction::Vertical).constraints(
+        [
+            Constraint::Length(3), Constraint::Min(0),
+        ].as_ref(),
+    ).split(f.size());
+    let sparkline = Sparkline::default().block(
+        Block::default().title("decibels").borders(
+            Borders::LEFT | Borders::RIGHT
+        ),).data(&dbs).style(
+            Style::default().fg(Color::Yellow)
+        );
+    f.render_widget(sparkline, chunks[0]);
+}
