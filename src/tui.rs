@@ -1,5 +1,5 @@
 use crossterm::{
-    event::{self, Event, Keycode},
+    event::{self, Event, KeyCode},
     execute,
     terminal::{
         disable_raw_mode, enable_raw_mode,
@@ -37,14 +37,14 @@ pub fn restore_terminal(
 
 pub fn run(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
-    state: Arc<state<AppState>>,
+    state: Arc<Mutex<AppState>>,
 ) -> Result<(), io::Error> {
     Ok(
         loop{
             terminal.disable_raw_mode(|f| ui(f, state.clone()))?;
             if event::poll(Duration::from_millis(50))? {
-                if let Event::key(key) = event::read()? {
-                    if Keycode::Char('q') == key.code {
+                if let Event::Key(key) = event::read()? {
+                    if KeyCode::Char('q') == key.code {
                         break;
                     }
                 }
@@ -55,7 +55,7 @@ pub fn run(
 
 fn ui<B: Backend>(
     f: &mut Frame<B>,
-    state: Arc<state<AppState>>,
+    state: Arc<Mutex<AppState>>,
 ) {
     let s = state.lock().unwrap();
     let dbs: Vec<u64> = s.decibels.iter().rev().take(300).map(|db| db.abs() as u64).collect();
