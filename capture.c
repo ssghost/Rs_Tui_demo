@@ -1,5 +1,4 @@
-#include "../miniaudio.h"
-
+#include <miniaudio.h>
 #include <stdlib.h>
 #include <stdio.h>
 
