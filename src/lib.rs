@@ -12,7 +12,7 @@ pub struct AppState{
     pub decibels: Vec<f32>,
 }
 
-pub fn read_wave(input: Path) -> Arc<Mutex<AppState>> {
+pub fn read_wave() -> Arc<Mutex<AppState>> {
     let mut state = AppState::new(read(Path::new("*.wav"), SampleType::F32(0.0)).unwrap());
     Ok(state)
 } 
